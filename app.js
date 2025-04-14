@@ -14,15 +14,27 @@ app.get('/scrape', async (req, res) => {
   });
 
   const page = await browser.newPage();
-  await page.goto('https://jp.mercari.com/');
+  
+  // 画面サイズをデスクトップ向けに設定
+  await page.setViewport({ width: 1280, height: 800 });  // デスクトップサイズに設定
 
+  await page.goto('https://jp.mercari.com/');
+  
   // 検索ボックスが表示されるまで待機
   await page.waitForSelector('.sc-55dc813e-2', {timeout: 10000});  // 検索ボックスのクラス名で待機
+  
+  // 検索ボックスが表示されたらスクロールして表示する
+  await page.evaluate(() => {
+    const element = document.querySelector('.sc-55dc813e-2');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  });
 
   // 検索ワードを入力
   await page.type('.sc-55dc813e-2', searchQuery);  // 検索ボックスに入力
   await page.keyboard.press('Enter');  // Enterキーを押す
-
+  
   // 検索結果が表示されるまで待機
   await page.waitForSelector('.items-box', {timeout: 10000});  // 検索結果の要素が表示されるまで待機
 
