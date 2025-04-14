@@ -37,16 +37,32 @@ app.get('/scrape', async (req, res) => {
     // 検索ワードを入力
     await page.type('.sc-666d09b4-2', searchQuery);
     await page.keyboard.press('Enter');
-    
     // 画面遷移後のURLを取得
     await page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 60000 });
 
     const currentUrl = page.url();  // 現在のURLを取得
 
+    // ページが読み込まれた後にチェックボックスをチェック状態にする
+    await page.waitForSelector('[data-testid="on-sale-condition-checkbox"]', { timeout: 60000 });
+    await page.evaluate(() => {
+      const checkbox = document.querySelector('[data-testid="on-sale-condition-checkbox"]');
+      if (checkbox && checkbox.type === 'checkbox' && !checkbox.checked) {
+        checkbox.click();
+      }
+    });
+    const ulHtml = await page.evaluate(() => {
+      const itemGrid = document.querySelector('#item-grid');
+      if (itemGrid) {
+        const ul = itemGrid.querySelector('ul');
+        // return ul ? ul.outerHTML : 'ul not found';
+      }
+      // return 'item-grid not found';
+    });
+
     // 結果としてURLを返す
     res.json({
-      message: '検索結果ページ',
-      url: currentUrl
+      message: '検索結果',
+      UL: ul.outerHTML
     });
   } catch (error) {
     console.error(error);
