@@ -1,70 +1,76 @@
 const express = require('express');
-const puppeteer = require('puppeteer-core');  // puppeteer-coreを使用
+const puppeteer = require('puppeteer-core');
 
 const app = express();
 const port = 3000;
 
 app.get('/scrape', async (req, res) => {
-  const searchQuery = req.query.query || "ジョイパレット(JOYPALETTE) アンパンマン キラ★ピカ★いっしょにステージ ミュージックショー";  // クエリパラメータを使用
+  const searchQuery = req.query.query || "ジョイパレット(JOYPALETTE) アンパンマン キラ★ピカ★いっしょにステージ ミュージックショー";
 
   const browser = await puppeteer.launch({
     headless: true,
-    executablePath: '/tmp/chrome-linux64/chrome',  // /tmpディレクトリ内のChromeを使用
-    args: ['--no-sandbox', '--disable-dev-shm-usage']  // 必要な引数
+    executablePath: '/tmp/chrome-linux64/chrome',
+    args: ['--no-sandbox', '--disable-dev-shm-usage']
   });
 
   const page = await browser.newPage();
   
   // 画面サイズをデスクトップ向けに設定
-  await page.setViewport({ width: 1280, height: 800 });  // デスクトップサイズに設定
+  await page.setViewport({ width: 1280, height: 800 });
 
-  await page.goto('https://jp.mercari.com/');
-  
-  // 検索ボックスが表示されるまで待機
-  await page.waitForSelector('.sc-55dc813e-2', {timeout: 10000});  // 検索ボックスのクラス名で待機
-  
-  // 検索ボックスが表示されたらスクロールして表示する
-  await page.evaluate(() => {
-    const element = document.querySelector('.sc-55dc813e-2');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  });
+  try {
+    // ページの読み込みを待機、タイムアウト時間を60秒に設定
+    await page.goto('https://jp.mercari.com/', { timeout: 60000 });
 
-  // 検索ワードを入力
-  await page.type('.sc-55dc813e-2', searchQuery);  // 検索ボックスに入力
-  await page.keyboard.press('Enter');  // Enterキーを押す
-  
-  // 検索結果が表示されるまで待機
-  await page.waitForSelector('.items-box', {timeout: 10000});  // 検索結果の要素が表示されるまで待機
+    // 検索ボックスが表示されるまで待機
+    await page.waitForSelector('.sc-55dc813e-2', { timeout: 60000 });
 
-  // 最初の商品情報を取得
-  const result = await page.evaluate(() => {
-    const items = document.querySelectorAll('.items-box');
+    // 検索ボックスが表示されたらスクロールして表示
+    await page.evaluate(() => {
+      const element = document.querySelector('.sc-55dc813e-2');
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+
+    // 検索ワードを入力
+    await page.type('.sc-55dc813e-2', searchQuery);
+    await page.keyboard.press('Enter');
     
-    if (items.length > 0) {
-      const firstItem = items[0];
-      const itemName = firstItem.querySelector('.items-box-name') ? firstItem.querySelector('.items-box-name').innerText : "取得できませんでした。";
-      const itemPrice = firstItem.querySelector('.items-box-price') ? firstItem.querySelector('.items-box-price').innerText : "取得できませんでした。";
-      const itemUrl = firstItem.querySelector('a') ? firstItem.querySelector('a').href : "取得できませんでした。";
+    // 検索結果が表示されるまで待機
+    await page.waitForSelector('.items-box', { timeout: 60000 });
+
+    // 最初の商品情報を取得
+    const result = await page.evaluate(() => {
+      const items = document.querySelectorAll('.items-box');
       
-      return {
-        name: itemName,
-        price: itemPrice,
-        url: itemUrl
-      };
-    } else {
-      return {
-        name: "取得できませんでした。",
-        price: "取得できませんでした。",
-        url: "取得できませんでした。"
-      };
-    }
-  });
+      if (items.length > 0) {
+        const firstItem = items[0];
+        const itemName = firstItem.querySelector('.items-box-name') ? firstItem.querySelector('.items-box-name').innerText : "取得できませんでした。";
+        const itemPrice = firstItem.querySelector('.items-box-price') ? firstItem.querySelector('.items-box-price').innerText : "取得できませんでした。";
+        const itemUrl = firstItem.querySelector('a') ? firstItem.querySelector('a').href : "取得できませんでした。";
+        
+        return {
+          name: itemName,
+          price: itemPrice,
+          url: itemUrl
+        };
+      } else {
+        return {
+          name: "取得できませんでした。",
+          price: "取得できませんでした。",
+          url: "取得できませんでした。"
+        };
+      }
+    });
 
-  res.json(result);  // JSON形式で結果を返す
-
-  await browser.close();
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'ページの読み込みに失敗しました。' });
+  } finally {
+    await browser.close();
+  }
 });
 
 app.listen(port, () => {
