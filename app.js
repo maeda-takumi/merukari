@@ -24,11 +24,11 @@ app.get('/scrape', async (req, res) => {
     await page.goto('https://jp.mercari.com/', { timeout: 60000 });
 
     // 検索ボックスが表示されるまで待機
-    await page.waitForSelector('.sc-55dc813e-2', { timeout: 60000 });
+    await page.waitForSelector('.sc-666d09b4-2', { timeout: 60000 });
 
     // 検索ボックスが表示されたらスクロールして表示
     await page.evaluate(() => {
-      const element = document.querySelector('.sc-55dc813e-2');
+      const element = document.querySelector('.sc-666d09b4-2');
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
