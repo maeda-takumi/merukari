@@ -13,9 +13,19 @@ app.get('/scrape', async (req, res) => {
     args: ['--no-sandbox', '--disable-dev-shm-usage']
   });
 
-
   const page = await browser.newPage();
-  
+
+  // ネットワークリソースの最適化（画像、CSS、フォント、JSなどの読み込みを防ぐ）
+  await page.setRequestInterception(true);
+  page.on('request', (request) => {
+    const resourceType = request.resourceType();
+    // 画像、スタイルシート、フォント、メディア、スクリプトなどを読み込まないようにする
+    if (resourceType === 'image' || resourceType === 'stylesheet' || resourceType === 'font' || resourceType === 'media' || resourceType === 'script') {
+      request.abort();  // リクエストを中止
+    } else {
+      request.continue();  // その他のリソースはそのまま読み込む
+    }
+  });
   // 画面サイズをデスクトップ向けに設定
   await page.setViewport({ width: 1280, height: 800 });
 
