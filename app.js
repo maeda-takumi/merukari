@@ -3,7 +3,7 @@ const puppeteer = require('puppeteer-core');  // puppeteer-coreを使用
 (async () => {
   const browser = await puppeteer.launch({
     headless: true,
-    executablePath: '/tmp/chrome',  // /tmpディレクトリ内のChromeを使用
+    executablePath: '/tmp/chrome-linux64/chrome',  // /tmpディレクトリ内のChromeを使用
     args: ['--no-sandbox', '--disable-dev-shm-usage']  // 必要な引数
   });
 
