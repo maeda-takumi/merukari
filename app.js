@@ -8,10 +8,11 @@ app.get('/scrape', async (req, res) => {
   const searchQuery = req.query.query || "ジョイパレット(JOYPALETTE) アンパンマン キラ★ピカ★いっしょにステージ ミュージックショー";
 
   const browser = await puppeteer.launch({
-    headless: false,  // ヘッドレスモードをオフにして、ブラウザの画面を表示
+    headless: true,  // ヘッドレスモードで動作
     executablePath: '/tmp/chrome-linux64/chrome',
     args: ['--no-sandbox', '--disable-dev-shm-usage']
   });
+
 
   const page = await browser.newPage();
   
