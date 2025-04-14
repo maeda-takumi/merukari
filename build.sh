@@ -1,5 +1,5 @@
 #!/bin/bash
-
+npm install
 # /tmpディレクトリにChromeとChromedriverをダウンロード
 mkdir -p /tmp
 
