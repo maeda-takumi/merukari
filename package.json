@@ -1,9 +1,11 @@
 {
-    "name": "puppeteer-app",
-    "version": "1.0.0",
-    "description": "Puppeteer on Render",
-    "main": "app.js",
-    "dependencies": {
-        "puppeteer": "^22.0.0"
-    }
+  "name": "render-puppeteer-tmp",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "start": "bash start.sh"
+  },
+  "dependencies": {
+    "puppeteer-core": "^21.3.8"
+  }
 }
