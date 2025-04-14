@@ -38,31 +38,6 @@ app.get('/scrape', async (req, res) => {
     await page.type('.sc-666d09b4-2', searchQuery);
     await page.keyboard.press('Enter');
     
-    // 検索結果が表示されるまで待機
-    await page.waitForSelector('#item-grid', { timeout: 60000 });
-
-    // 最初の商品情報を取得
-    const result = await page.evaluate(() => {
-      const items = document.querySelectorAll('.sc-bcd1c877-2');
-      
-      if (items.length > 0) {
-        const firstItem = items[0];
-        const itemName = firstItem.querySelector('.itemName__a6f874a2') ? firstItem.querySelector('.items-box-name').innerText : "取得できませんでした。";
-        const itemPrice = firstItem.querySelector('.items-box-price') ? firstItem.querySelector('.items-box-price').innerText : "取得できませんでした。";
-        const itemUrl = firstItem.querySelector('a') ? firstItem.querySelector('a').href : "取得できませんでした。";
-        
-        return {
-          name: itemName,
-          price: itemPrice,
-          url: itemUrl
-        };
-      } else {
-        return {
-          name: "取得できませんでした。",
-          price: "取得できませんでした。",
-          url: "取得できませんでした。"
-        };
-      }
     });
 
     res.json(result);
@@ -72,6 +47,7 @@ app.get('/scrape', async (req, res) => {
   } finally {
     await browser.close();
   }
+
 });
 
 app.listen(port, () => {
