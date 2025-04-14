@@ -15,11 +15,11 @@ app.get('/scrape', async (req, res) => {
 
   const page = await browser.newPage();
 
-  // リソース最適化（画像やCSS等をブロック）
+  // ネットワークリソースの最適化（画像、CSS、フォント、メディアのみブロック）
   await page.setRequestInterception(true);
   page.on('request', (request) => {
     const resourceType = request.resourceType();
-    if (['image', 'stylesheet', 'font', 'media', 'script'].includes(resourceType)) {
+    if (['image', 'stylesheet', 'font', 'media'].includes(resourceType)) {
       request.abort();
     } else {
       request.continue();
@@ -30,9 +30,9 @@ app.get('/scrape', async (req, res) => {
 
   try {
     await page.goto('https://jp.mercari.com/', { timeout: 60000 });
+
     await page.waitForSelector('.sc-666d09b4-2', { timeout: 60000 });
 
-    // 検索実行
     await page.evaluate(() => {
       const element = document.querySelector('.sc-666d09b4-2');
       if (element) {
@@ -43,12 +43,16 @@ app.get('/scrape', async (req, res) => {
     await page.type('.sc-666d09b4-2', searchQuery);
     await page.keyboard.press('Enter');
 
+    // ページ遷移を待機
     await page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 60000 });
 
     const currentUrl = page.url();
 
-    // チェックボックスにチェック
-    await page.waitForSelector('[data-testid="on-sale-condition-checkbox"]', { timeout: 60000 });
+    // item-grid が表示されるまで待機
+    await page.waitForSelector('#item-grid ul', { timeout: 90000 });
+
+    // チェックボックスが読み込まれるまで待機
+    await page.waitForSelector('[data-testid="on-sale-condition-checkbox"]', { timeout: 30000 });
     await page.evaluate(() => {
       const checkbox = document.querySelector('[data-testid="on-sale-condition-checkbox"]');
       if (checkbox && checkbox.type === 'checkbox' && !checkbox.checked) {
@@ -66,18 +70,19 @@ app.get('/scrape', async (req, res) => {
       return 'item-grid not found';
     });
 
-    // 結果を返却
     res.json({
       message: '検索結果',
-      url: currentUrl,
-      ul: ulHtml
+      currentUrl,
+      ulHtml
     });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'ページの読み込みに失敗しました。' });
   } finally {
     await browser.close();
   }
+
 });
 
 app.listen(port, () => {
