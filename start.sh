@@ -1,5 +1,5 @@
 #!/bin/bash
-
+npm install express
 # ChromeがなければDL
 if [ ! -f /tmp/chrome-linux64/chrome ]; then
   echo "Chrome not found. Downloading..."
