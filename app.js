@@ -39,7 +39,7 @@ app.get('/scrape', async (req, res) => {
     await page.keyboard.press('Enter');
     
     // 検索結果が表示されるまで待機
-    await page.waitForSelector('.items-box', { timeout: 60000 });
+    await page.waitForSelector('#item-grid', { timeout: 60000 });
 
     // 最初の商品情報を取得
     const result = await page.evaluate(() => {
