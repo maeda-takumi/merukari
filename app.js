@@ -1,4 +1,4 @@
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core');  // puppeteer-coreを使用
 
 (async () => {
   const browser = await puppeteer.launch({
