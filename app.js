@@ -35,7 +35,7 @@ app.get('/scrape', async (req, res) => {
     });
 
     // 検索ワードを入力
-    await page.type('.sc-55dc813e-2', searchQuery);
+    await page.type('.sc-666d09b4-2', searchQuery);
     await page.keyboard.press('Enter');
     
     // 検索結果が表示されるまで待機
