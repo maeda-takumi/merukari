@@ -38,9 +38,16 @@ app.get('/scrape', async (req, res) => {
     await page.type('.sc-666d09b4-2', searchQuery);
     await page.keyboard.press('Enter');
     
-    });
+    // 画面遷移後のURLを取得
+    await page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 60000 });
 
-    res.json(result);
+    const currentUrl = page.url();  // 現在のURLを取得
+
+    // 結果としてURLを返す
+    res.json({
+      message: '検索結果ページ',
+      url: currentUrl
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'ページの読み込みに失敗しました。' });
