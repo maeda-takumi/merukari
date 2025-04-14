@@ -43,11 +43,11 @@ app.get('/scrape', async (req, res) => {
 
     // 最初の商品情報を取得
     const result = await page.evaluate(() => {
-      const items = document.querySelectorAll('.items-box');
+      const items = document.querySelectorAll('.sc-bcd1c877-2');
       
       if (items.length > 0) {
         const firstItem = items[0];
-        const itemName = firstItem.querySelector('.items-box-name') ? firstItem.querySelector('.items-box-name').innerText : "取得できませんでした。";
+        const itemName = firstItem.querySelector('.itemName__a6f874a2') ? firstItem.querySelector('.items-box-name').innerText : "取得できませんでした。";
         const itemPrice = firstItem.querySelector('.items-box-price') ? firstItem.querySelector('.items-box-price').innerText : "取得できませんでした。";
         const itemUrl = firstItem.querySelector('a') ? firstItem.querySelector('a').href : "取得できませんでした。";
         
