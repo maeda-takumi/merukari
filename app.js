@@ -42,15 +42,15 @@ app.get('/scrape', async (req, res) => {
     await page.type('.sc-666d09b4-2', searchQuery);
     await page.keyboard.press('Enter');
 
-    await page.waitForSelector('#item-grid ul', { timeout: 20000 });
+    // await page.waitForSelector('#item-grid ul', { timeout: 20000 });
 
-    const checkbox = await page.$('[data-testid="on-sale-condition-checkbox"]');
-    if (checkbox) await checkbox.click();
+    // const checkbox = await page.$('[data-testid="on-sale-condition-checkbox"]');
+    // if (checkbox) await checkbox.click();
 
-    const ulHtml = await page.evaluate(() => {
-      const ul = document.querySelector('#item-grid ul');
-      return ul ? ul.outerHTML : 'ul not found';
-    });
+    // const ulHtml = await page.evaluate(() => {
+    //   const ul = document.querySelector('#item-grid ul');
+    //   return ul ? ul.outerHTML : 'ul not found';
+    // });
 
     res.json({
       message: '検索結果',
