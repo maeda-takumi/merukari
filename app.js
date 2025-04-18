@@ -5,84 +5,65 @@ const app = express();
 const port = 3000;
 
 app.get('/scrape', async (req, res) => {
-  const searchQuery = req.query.query || "ジョイパレット(JOYPALETTE) アンパンマン キラ★ピカ★いっしょにステージ ミュージックショー";
+  const searchQuery = req.query.query || "ジョイパレット アンパンマン ミュージックショー";
 
   const browser = await puppeteer.launch({
     headless: true,
     executablePath: '/tmp/chrome-linux64/chrome',
-    args: ['--no-sandbox', '--disable-dev-shm-usage']
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-accelerated-2d-canvas',
+      '--disable-gpu',
+      '--no-zygote',
+      '--single-process'
+    ]
   });
 
   const page = await browser.newPage();
 
-  // ネットワークリソースの最適化（画像、CSS、フォント、メディアのみブロック）
   await page.setRequestInterception(true);
-  page.on('request', (request) => {
-    const resourceType = request.resourceType();
-    if (['image', 'stylesheet', 'font', 'media'].includes(resourceType)) {
-      request.abort();
+  page.on('request', (req) => {
+    if (['image', 'stylesheet', 'font', 'media'].includes(req.resourceType())) {
+      req.abort();
     } else {
-      request.continue();
+      req.continue();
     }
   });
 
-  await page.setViewport({ width: 1280, height: 800 });
-
   try {
-    await page.goto('https://jp.mercari.com/', { timeout: 60000 });
-
-    await page.waitForSelector('.sc-666d09b4-2', { timeout: 60000 });
-
-    await page.evaluate(() => {
-      const element = document.querySelector('.sc-666d09b4-2');
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
+    await page.goto('https://jp.mercari.com/', {
+      timeout: 30000,
+      waitUntil: 'domcontentloaded'
     });
 
+    await page.waitForSelector('.sc-666d09b4-2', { timeout: 10000 });
     await page.type('.sc-666d09b4-2', searchQuery);
     await page.keyboard.press('Enter');
 
-    // ページ遷移を待機
-    await page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 60000 });
+    await page.waitForSelector('#item-grid ul', { timeout: 20000 });
 
-    const currentUrl = page.url();
+    const checkbox = await page.$('[data-testid="on-sale-condition-checkbox"]');
+    if (checkbox) await checkbox.click();
 
-    // item-grid が表示されるまで待機
-    await page.waitForSelector('#item-grid ul', { timeout: 90000 });
-
-    // チェックボックスが読み込まれるまで待機
-    await page.waitForSelector('[data-testid="on-sale-condition-checkbox"]', { timeout: 30000 });
-    await page.evaluate(() => {
-      const checkbox = document.querySelector('[data-testid="on-sale-condition-checkbox"]');
-      if (checkbox && checkbox.type === 'checkbox' && !checkbox.checked) {
-        checkbox.click();
-      }
-    });
-
-    // ul の HTML を取得
     const ulHtml = await page.evaluate(() => {
-      const itemGrid = document.querySelector('#item-grid');
-      if (itemGrid) {
-        const ul = itemGrid.querySelector('ul');
-        return ul ? ul.outerHTML : 'ul not found';
-      }
-      return 'item-grid not found';
+      const ul = document.querySelector('#item-grid ul');
+      return ul ? ul.outerHTML : 'ul not found';
     });
 
     res.json({
       message: '検索結果',
-      currentUrl,
+      currentUrl: page.url(),
       ulHtml
     });
 
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'ページの読み込みに失敗しました。' });
+    res.status(500).json({ error: '処理失敗', detail: error.message });
   } finally {
     await browser.close();
   }
-
 });
 
 app.listen(port, () => {
